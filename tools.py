@@ -30,12 +30,6 @@ def table_to_dataframe(path):
     data = {col_name:[] for col_name in col_names}
     while index < len(lines):
 
-        # Print if row_num is multiple of 10% * num_rows
-        # if curr_row_num % ten_percent_num_rows == 0:
-        #    print(math.ceil(num_rows/curr_row_num),'%')
-
-
-
         # Clean
         row = lines[index].split(' ')
         row = [value.strip() for value in row]
