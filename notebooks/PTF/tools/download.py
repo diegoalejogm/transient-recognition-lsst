@@ -3,10 +3,7 @@ import pandas as pd
 import urllib.request
 from urllib.parse import urlencode
 import os
-
-# CONSTANTS
-DIR_DATA = '../../data/PTF/'
-CATALOG_API = 'http://irsa.ipac.caltech.edu/cgi-bin/Gator/nph-query'
+from . import constants
 
 # HELPER METHOD TO OBTAIN OBJECT CATALOGUES URL REQUEST
 def __object_cat_url__(outrows, transient):
@@ -17,19 +14,19 @@ def __object_cat_url__(outrows, transient):
     query['outfmt'] = '1'
     query['outrows'] = '{}'.format(outrows)
     query['constraints'] = 'nobs >= 20 AND ngoodobs>= 15' + (' AND transient_flag=1' if  transient else '')
-    query_url = CATALOG_API + '?' + urlencode(query)
+    query_url = constants.CATALOG_API + '?' + urlencode(query)
     return query_url
 
 def transient_cat(outrows, overwrite=False):
     query_url = __object_cat_url__(outrows, transient=True)
-    output_directory = DIR_DATA + 'cats/objects'
+    output_directory = constants.DIR_CATALOGUES_OBJECTS
     filename = 'transient_cat.tbl'
     file_path = __download_file__(query_url, filename, output_directory, overwrite)
     return file_path
 
 def permanent_cat(outrows, overwrite=False):
     query_url = __object_cat_url__(outrows, transient=False)
-    output_directory = DIR_DATA + 'cats/objects'
+    output_directory = constants.DIR_CATALOGUES_OBJECTS
     filename = 'permanent_cat.tbl'
     file_path = __download_file__(query_url, filename, output_directory, overwrite)
     return file_path
@@ -44,14 +41,13 @@ def __light_url__(ra, dec):
     query['constraints'] = 'ra={} AND dec={} AND fid=2'.format(ra, dec)
     query['order'] = 'obsmjd'
     
-    query_url = CATALOG_API + '?' + urlencode(query)
+    query_url = constants.CATALOG_API + '?' + urlencode(query)
     return query_url
 
-def light_curves(transient_cat_df, transient, overwrite=False, limit=None):
-    output_directory = DIR_DATA + 'light/Red/' + ('transient' if transient else 'permanent')
-    MAX_DOWNLOADS = 20
+def light_curves(obj_cat_df, transient, overwrite=False, limit=None, append_series=False):
+    output_directory = constants.DIR_LIGHTCURVES_RED + ('transient' if transient else 'permanent')
     file_paths = []
-    for i, row in transient_cat_df.iterrows():
+    for i, row in obj_cat_df.iterrows():
         if limit and i == limit:
             break
         else:
@@ -59,7 +55,10 @@ def light_curves(transient_cat_df, transient, overwrite=False, limit=None):
             query_url = __light_url__(row['ra'], row['dec'])
             file_path = __download_file__(query_url, '{}.tbl'.format(objid), output_directory, overwrite)
             file_paths.append(file_path)
-    return pd.Series(file_paths)
+    resp = pd.Series(file_paths)
+    if append_series:
+        obj_cat_df['lightcurve_path'] = resp
+    return resp
 
 # HELPER METHOD TO DOWNLOAD FILES
 def __download_file__(url, name, outdir, overwrite=False):
@@ -68,9 +67,9 @@ def __download_file__(url, name, outdir, overwrite=False):
     filepath = outdir + '/' + name
     file_exists = os.path.isfile(filepath)
     if file_exists and not overwrite:
-#        print('File {} already exists'.format(name))
+        print('File {} already exists'.format(name))
         pass
     else:        
-#        print('Downloading {}'.format(filepath))
+        print('Downloading {}'.format(filepath))
         urllib.request.urlretrieve(url, filepath)
     return filepath

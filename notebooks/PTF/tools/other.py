@@ -1,25 +1,6 @@
 import pandas as pd
 import math, timeit, sys, os
-import urllib.request
-
-def reporthook(blocknum, blocksize, totalsize):
-    readsofar = blocknum * blocksize
-    if totalsize > 0:
-        percent = readsofar * 1e2 / totalsize
-        s = "\r%5.1f%% %*d / %d" % (
-            percent, len(str(totalsize)), readsofar, totalsize)
-        sys.stderr.write(s)
-        if readsofar >= totalsize: # near the end
-            sys.stderr.write("\n")
-    else: # total size is unknown
-        sys.stderr.write("read %d\n" % (readsofar,))
-
-def download_file(url, name, outdir):
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    filepath = outdir + '/' + name
-    urllib.request.urlretrieve(url, filepath, reporthook)
-    return filepath
+import urllib.request        
 
 def table_to_dataframe(path):
     start = timeit.default_timer()
