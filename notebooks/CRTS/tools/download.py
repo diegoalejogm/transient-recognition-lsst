@@ -162,9 +162,9 @@ def __create_query_file__(obj_catalog_df, start_index, end_index):
             file.write('{} {} {}\n'.format(i, ra, dec))
     return query_file_path
 
-def __format_raw_light_curves__(raw_light_curves_df, start_index):
-    raw_light_curves_df['InputID'] = raw_light_curves_df['InputID'] + start_index
-#    raw_light_curves_df.rename(columns={'InputID':'ObjectID'}, inplace=True)
+def __format_raw_light_curves__(raw_light_curves_df):
+#    raw_light_curves_df['InputID'] = raw_light_curves_df['InputID']
+    raw_light_curves_df.rename(columns={'InputID':'ObjectID'}, inplace=True)
     
 def __generate_light_curves__(obj_catalog_df, overwrite):
     outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED
@@ -189,7 +189,7 @@ def __generate_light_curves__(obj_catalog_df, overwrite):
                     print('Error in seq. {}, curves not found'.format(i))
                     continue
             raw_light_curves_df = Table.read(light_curves_table_path, format='ascii').to_pandas()
-            __format_raw_light_curves__(raw_light_curves_df, i)
+            __format_raw_light_curves__(raw_light_curves_df)
             light_curves_df = light_curves_df.append(raw_light_curves_df, ignore_index=True)
             print('Num. of light curve points :', light_curves_df.shape[0])
         light_curves_df.to_pickle(filepath)

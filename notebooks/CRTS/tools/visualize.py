@@ -14,8 +14,8 @@ def light_curve_interactive_scatter(obj_light_curve_df, mode='markers', name=Non
     else:
         scatter = go.Scatter(
             mode=mode,
-            x=pd.Series(time.mjd_to_datetime(obj_light_curve_df['MJD'])),
+            x=pd.Series(time.mjd_to_datetime(obj_light_curve_df.MJD)),
             y=obj_light_curve_df.Mag,
-            name= name if name else obj_light_curve_df.InputID.iloc[0]
+            name= name if name else obj_light_curve_df.ObjectID.iloc[0]
         )
     return scatter
