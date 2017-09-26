@@ -19,45 +19,59 @@ import time
 
 # Catalogues download
 def all_transients_catalog(overwrite=False):
+    outdir = k.DIR_CATALOGUES_OBJECTS
+    io.makedir(outdir)
     filename = 'all_transients.pickle'
-    filepath = k.DIR_CATALOGUES_OBJECTS + filename
+    filepath = outdir + filename
     file_exists = os.path.isfile(filepath)
-    io.makedir(k.DIR_CATALOGUES_OBJECTS)
-    if not file_exists or overwrite:
-        all_objects_catalog = pd.DataFrame()
-        for object_type in classes.ObjectTypes:
-            new_catalog = __object_catalog__(object_type, overwrite)
-            new_catalog['Type'] = object_type.value.upper()
-            all_objects_catalog = all_objects_catalog.append(new_catalog, ignore_index=True)
-        all_objects_catalog.reset_index(drop=True, inplace=True)
-        all_objects_catalog.to_pickle(filepath)
-        return all_objects_catalog
+    if file_exists and not overwrite:
+        all_transients_catalog = pd.read_pickle(filepath)
+        return all_transients_catalog
     else:
-        df = pd.read_pickle(filepath)
-        return df
-
-def supernovae_catalog(overwrite=False):
-    return __object_catalog__(classes.ObjectTypes.supernovae, overwrite)
-def cv_catalog(overwrite=False):
-    return __object_catalog__(classes.ObjectTypes.cv, overwrite)
-def blazars_catalog(overwrite=False):
-    return __object_catalog__(classes.ObjectTypes.blazars, overwrite)
-def agn_catalog(overwrite=False):
-    return __object_catalog__(classes.ObjectTypes.agn, overwrite)
+        all_transients_catalog = pd.DataFrame()
+        for transient_type in classes.ObjectTypes:
+            new_catalog = __transient_catalog__(transient_type, overwrite)
+            new_catalog['type'] = transient_type.value.upper()
+            all_transients_catalog = all_transients_catalog.append(new_catalog, ignore_index=True)
+        all_transients_catalog.reset_index(drop=True, inplace=True)
+        all_transients_catalog.to_pickle(filepath)
+        return all_transients_catalog
+    
+# Catalogues download
+def all_permanents_catalog(permanents_light_curves_df, overwrite=False):
+    outdir = k.DIR_CATALOGUES_OBJECTS
+    io.makedir(outdir)
+    filename = 'all_permanents.pickle'
+    filepath = outdir + filename
+    file_exists = os.path.isfile(filepath)
+    if file_exists and not overwrite:
+        all_permanents_catalog = pd.read_pickle(filepath)
+        return all_permanents_catalog
+    else:
+        all_permanents_catalog = permanents_light_curves_df[['ID','RA','Decl','ObjId']].groupby('ID').mean()
+        all_permanents_catalog.rename(columns={'RA':'ra', 'Decl':'dec'}, inplace=True)
+        all_permanents_catalog.set_index(['ObjId'], drop=True, inplace=True)
+        all_permanents_catalog.to_pickle(filepath)
+        return all_permanents_catalog
 
 # Light curves download
 def all_transients_light_curves(df, overwrite=False):
-    all_transients_light_curves = __generate_transient_light_curves__(df, overwrite)
+    all_transients_light_curves = __generate_light_curves__(df, overwrite=overwrite, ispermanent=False)
     return all_transients_light_curves
 
-def all_permanents_light_curves(transient_df, overwrite=False):
-    all_permanents_light_curves = __generate_permanents_light_curves__(transient_df, overwrite)
+def all_permanents_light_curves(transient_catalog_df, transient_light_curves_df, overwrite=False):
+    all_permanents_light_curves = __generate_permanents_light_curves__(
+        obj_catalog_df=transient_catalog_df, 
+        ispermanent=True, 
+        overwrite=overwrite,
+        transient_IDs=transient_light_curves_df.ID
+    )
     return all_permanents_light_curves
 
 # *** END: PUBLIC METHODS ***
 
 # *** START: OBJECT CATALOGUES HELPER METHODS ***
-def __object_catalog__(object_type, overwrite):
+def __transient_catalog__(object_type, overwrite):
     filename = '{}.pickle'.format(object_type.value)
     filepath = k.DIR_CATALOGUES_OBJECTS + filename
     file_exists = os.path.isfile(filepath)
@@ -100,7 +114,6 @@ def __retrieve_object_catalog__(url, object_type):
 def __init_driver__():
     driver = webdriver.Chrome()
     driver.set_window_size(700, 1800) 
-#    driver.implicitly_wait() # seconds
     driver.set_page_load_timeout(600)
     return driver
         
@@ -122,53 +135,76 @@ def __raw_light_curves_url__(query_file_path, driver):
     return url
 
 def __retrieve_light_curves__(query_file_path, filename, outdir):
+    done = False
+    file_url = None
     url = 'http://nesssi.cacr.caltech.edu/cgi-bin/getmulticonedb_release2.cgi'
     driver = __init_driver__()
-    driver.get(url)
-    url = __raw_light_curves_url__(query_file_path, driver)
-    driver.quit()
-    
-    if url:
+    while not done:
+        try:
+            driver.get(url)
+            file_url = __raw_light_curves_url__(query_file_path, driver)
+            driver.quit()
+            done = True
+        except TimeoutException as e:
+            print('Timeout Exception. Will try again.')
+    if file_url:
         raw_light_curves_path = __download_file__(url, filename, outdir, overwrite=True)
         return raw_light_curves_path
     else:
         return None
     
-def __create_query_file__(obj_catalog_df, start_index, end_index):
+def __create_query_file__(obj_catalog_df, ispermanent, start_index, end_index):
     query_file_path = './query_file.txt'
     with open(query_file_path, 'w+') as file:
         for i, row in obj_catalog_df[start_index:end_index].iterrows():
             index = i
             ra = row['ra']
             dec = row['dec']
-            file.write('{} {} {}\n'.format(i, ra, dec))
+            rad = 0.02 if ispermanent else 0.002
+            file.write('{} {} {} {}\n'.format(i, ra, dec, rad))
     return query_file_path
 
-def __format_raw_light_curves__(raw_light_curves_df):
-    raw_light_curves_df.rename(columns={'InputID':'ObjectID'}, inplace=True)
-    
-def __generate_transient_light_curves__(obj_catalog_df, overwrite):
-    outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED
-    filename = 'all_transients_light_curves.pickle'
-    filepath = outdir + filename
+def __format_raw_light_curves__(raw_light_curves_df, ispermanent=None, transient_IDs=None):
+    if ispermanent and transient_IDs:
+        print('Before', raw_light_curves_df.shape[0])
+        raw_light_curves_df.drop(raw_light_curves_df[raw_light_curves_df.ID.isin(transient_IDs)].index, inplace=True)
+        df.drop('column_name', axis=1, inplace=True)
+        print('After', raw_light_curves_df.shape[0])
+    else:
+        raw_light_curves_df.rename(columns={'InputID':'ObjectID'}, inplace=True)
+
+def __consolidate_light_curves_df__(obj_catalog_df, ispermanent, transient_IDs=None):
+    outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED_TEMP_OBJECTS if ispermanent else k.DIR_CATALOGUES_LIGHTCURVES_GROUPED_TEMP_TRANSIENTS
     io.makedir(outdir)
-    if io.file_exists(filename, outdir, verbose=False) and not overwrite:
+    light_curves_df = pd.DataFrame()
+    step, n_rows = 100, obj_catalog_df.shape[0]
+    for i in range(0, n_rows, step):
+        temp_light_curves_filename = 'part{}.tbl'.format(int(i/step))
+        light_curves_table_path = outdir + temp_light_curves_filename
+        if not io.file_exists(temp_light_curves_filename, outdir, verbose=False):
+            query_file_path = __create_query_file__(obj_catalog_df, ispermanent, start_index=i, end_index=i+step)
+            light_curves_table_path = __retrieve_light_curves__(query_file_path, temp_light_curves_filename, outdir)
+            if not light_curves_table_path: print('Error in seq. {}, curves not found'.format(i)); continue;
+        temp_light_curves_df = Table.read(light_curves_table_path, format='ascii').to_pandas()
+        __format_raw_light_curves__(temp_light_curves_df, ispermanent, transient_IDs)
+        light_curves_df = light_curves_df.append(temp_light_curves_df, ignore_index=True)
+    light_curves_df.drop_duplicates(keep='first', inplace=True)
+    if ispermanent:
+        # Add ObjId column
+        light_curves_df['ObjId'] = np.nan
+        for i, index in enumerate(light_curves_df.ID.unique):
+            light_curves_df.loc[light_curves_df.ID == index, 'ObjId'] = i
+    return light_curves_df
+    
+def __generate_light_curves__(obj_catalog_df, overwrite, ispermanent, transient_IDs=None):
+    outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED
+    io.makedir(outdir)
+    filename = 'all_permanents_light_curves.pickle' if ispermanent else 'all_transients_light_curves.pickle'
+    filepath = outdir + filename
+    if io.file_exists(filename, outdir) and not overwrite:
         return pd.read_pickle(filepath)
     else:
-        temp_light_curves_catalogues_out_dir = outdir + 'temp/transients/'
-        io.makedir(temp_light_curves_catalogues_out_dir)
-        light_curves_df = pd.DataFrame()
-        step, n_rows = 100, obj_catalog_df.shape[0]
-        for i in range(0, n_rows, step):
-            existing_light_curves_filename = 'part{}.tbl'.format(int(i/step))
-            light_curves_table_path = temp_light_curves_catalogues_out_dir + existing_light_curves_filename
-            if not io.file_exists(existing_light_curves_filename, temp_light_curves_catalogues_out_dir, verbose=False):
-                query_file_path = __create_query_file__(obj_catalog_df, i, i+step)
-                light_curves_table_path = __retrieve_light_curves__(query_file_path, existing_light_curves_filename, temp_light_curves_catalogues_out_dir)
-                if not light_curves_table_path: print('Error in seq. {}, curves not found'.format(i))
-            raw_light_curves_df = Table.read(light_curves_table_path, format='ascii').to_pandas()
-            __format_raw_light_curves__(raw_light_curves_df)
-            light_curves_df = light_curves_df.append(raw_light_curves_df, ignore_index=True)
+        light_curves_df = __consolidate_light_curves_df__(obj_catalog_df, ispermanent, transient_IDs)
         light_curves_df.to_pickle(filepath)
         return light_curves_df
 
