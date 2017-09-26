@@ -18,8 +18,8 @@ import time
 # *** START: PUBLIC METHODS ***
 
 # Catalogues download
-def all_objects_catalog(overwrite=False):
-    filename = 'all_objects.pickle'
+def all_transients_catalog(overwrite=False):
+    filename = 'all_transients.pickle'
     filepath = k.DIR_CATALOGUES_OBJECTS + filename
     file_exists = os.path.isfile(filepath)
     io.makedir(k.DIR_CATALOGUES_OBJECTS)
@@ -27,11 +27,8 @@ def all_objects_catalog(overwrite=False):
         all_objects_catalog = pd.DataFrame()
         for object_type in classes.ObjectTypes:
             new_catalog = __object_catalog__(object_type, overwrite)
-            print('New_Catalog',new_catalog.shape)
             new_catalog['Type'] = object_type.value.upper()
-            print('New_Catalog',new_catalog.shape)
             all_objects_catalog = all_objects_catalog.append(new_catalog, ignore_index=True)
-            print(all_objects_catalog.shape)
         all_objects_catalog.reset_index(drop=True, inplace=True)
         all_objects_catalog.to_pickle(filepath)
         return all_objects_catalog
@@ -49,19 +46,14 @@ def agn_catalog(overwrite=False):
     return __object_catalog__(classes.ObjectTypes.agn, overwrite)
 
 # Light curves download
-def all_objects_light_curves(df, overwrite=False):
-    all_objects_ligtht_curves = __generate_light_curves__(df, overwrite)
-    return all_objects_ligtht_curves
-'''
-def supernovae_light_curves(df, overwrite=False):
-    return __generate_light_curves__(df, classes.ObjectTypes.supernovae, overwrite)
-def cv_light_curves(df, overwrite=False):
-    return __generate_light_curves__(df, classes.ObjectTypes.cv, overwrite)
-def blazars_light_curves(df, overwrite=False):
-    return __generate_light_curves__(df, classes.ObjectTypes.blazars, overwrite)
-def agn_light_curves(df, overwrite=False):
-    return __generate_light_curves__(df, classes.ObjectTypes.agn, overwrite)
-'''
+def all_transients_light_curves(df, overwrite=False):
+    all_transients_light_curves = __generate_transient_light_curves__(df, overwrite)
+    return all_transients_light_curves
+
+def all_permanents_light_curves(transient_df, overwrite=False):
+    all_permanents_light_curves = __generate_permanents_light_curves__(transient_df, overwrite)
+    return all_permanents_light_curves
+
 # *** END: PUBLIC METHODS ***
 
 # *** START: OBJECT CATALOGUES HELPER METHODS ***
@@ -117,16 +109,6 @@ def __raw_light_curves_url__(query_file_path, driver):
     driver.find_element_by_css_selector('input[name="DB"][value="orphancat"]').click()
     driver.find_element_by_css_selector('input[name="upload_file"]').send_keys(query_file_path)
     driver.find_element_by_css_selector('input[type="submit"]').send_keys("\n")
-#    WebDriverWait(driver, 10).until( AnyEc(
-#        EC.presence_of_element_located(
-#            (By.CSS_SELECTOR, "input[type='button'")),
-#        EC.presence_of_element_located(
-#            (By.CSS_SELECTOR, "input[type='submit']")) 
-#    ))
-#    element = WebDriverWait(driver, 3).until(
-#        lambda driver: driver.find_elements(By.CSS_SELECTOR,'input[type="button"]') or
-#            driver.find_elements(By.CSS_SELECTOR,'input[type="submit"]')
-#    )
     submit_button = driver.find_elements(By.XPATH, '//input[@type="submit"]')
     if len(submit_button):            
         submit_button[0].click()
@@ -163,39 +145,33 @@ def __create_query_file__(obj_catalog_df, start_index, end_index):
     return query_file_path
 
 def __format_raw_light_curves__(raw_light_curves_df):
-#    raw_light_curves_df['InputID'] = raw_light_curves_df['InputID']
     raw_light_curves_df.rename(columns={'InputID':'ObjectID'}, inplace=True)
     
-def __generate_light_curves__(obj_catalog_df, overwrite):
+def __generate_transient_light_curves__(obj_catalog_df, overwrite):
     outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED
-    filename = 'all_objects_light_curves.pickle'
+    filename = 'all_transients_light_curves.pickle'
     filepath = outdir + filename
     io.makedir(outdir)
-    if not io.file_exists(filename, outdir, verbose=False) or overwrite:
-        light_curves_df = pd.DataFrame()
-        n_rows = obj_catalog_df.shape[0]
-        step = 100
-        temp_light_curves_catalogues_out_dir = outdir + 'temp/'
+    if io.file_exists(filename, outdir, verbose=False) and not overwrite:
+        return pd.read_pickle(filepath)
+    else:
+        temp_light_curves_catalogues_out_dir = outdir + 'temp/transients/'
         io.makedir(temp_light_curves_catalogues_out_dir)
+        light_curves_df = pd.DataFrame()
+        step, n_rows = 100, obj_catalog_df.shape[0]
         for i in range(0, n_rows, step):
-            existing_light_curves_filename = 'part{}.tbl'.format(int(i/100))
-            light_curves_table_path = None
-            if io.file_exists(existing_light_curves_filename, temp_light_curves_catalogues_out_dir, verbose=False):
-                light_curves_table_path = temp_light_curves_catalogues_out_dir + existing_light_curves_filename
-            else:
+            existing_light_curves_filename = 'part{}.tbl'.format(int(i/step))
+            light_curves_table_path = temp_light_curves_catalogues_out_dir + existing_light_curves_filename
+            if not io.file_exists(existing_light_curves_filename, temp_light_curves_catalogues_out_dir, verbose=False):
                 query_file_path = __create_query_file__(obj_catalog_df, i, i+step)
                 light_curves_table_path = __retrieve_light_curves__(query_file_path, existing_light_curves_filename, temp_light_curves_catalogues_out_dir)
-                if not light_curves_table_path:
-                    print('Error in seq. {}, curves not found'.format(i))
-                    continue
+                if not light_curves_table_path: print('Error in seq. {}, curves not found'.format(i))
             raw_light_curves_df = Table.read(light_curves_table_path, format='ascii').to_pandas()
             __format_raw_light_curves__(raw_light_curves_df)
             light_curves_df = light_curves_df.append(raw_light_curves_df, ignore_index=True)
-            print('Num. of light curve points :', light_curves_df.shape[0])
         light_curves_df.to_pickle(filepath)
         return light_curves_df
-    else:
-        return pd.read_pickle(filepath)
+
 #  *** END: LIGHT CURVES HELPER METHODS ***
 
 def __download_file__(url, name, outdir, overwrite=False):
@@ -210,16 +186,3 @@ def __download_file__(url, name, outdir, overwrite=False):
         print('Downloading {}'.format(filepath))
         urllib.request.urlretrieve(url, filepath)
     return filepath
-
-class AnyEc:
-    """ Use with WebDriverWait to combine expected_conditions
-        in an OR.
-    """
-    def __init__(self, *args):
-        self.ecs = args
-    def __call__(self, driver):
-        for fn in self.ecs:
-            try:
-                if fn(driver): return True
-            except:
-                pass
