@@ -51,6 +51,7 @@ def all_permanents_catalog(permanents_light_curves_df, overwrite=False):
     else:
         all_permanents_catalog = permanents_light_curves_df[['ID','RA','Decl','ObjID']].groupby('ID').mean()
         all_permanents_catalog.rename(columns={'RA':'ra', 'Decl':'dec'}, inplace=True)
+        all_permanents_catalog['type'] = 'PERMANENT'
         all_permanents_catalog.set_index(['ObjID'], drop=True, inplace=True)
         all_permanents_catalog.sort_index(inplace=True)
         all_permanents_catalog.to_pickle(filepath)
