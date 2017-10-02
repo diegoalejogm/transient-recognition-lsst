@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 from lxml import html
 from . import constants as k
-from . import io, classes
+from . import io, classes, time
 import os
 import urllib.request
 import numpy as np
@@ -14,7 +14,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import time
 
 # *** START: PUBLIC METHODS ***
 
@@ -49,10 +48,10 @@ def all_permanents_catalog(permanents_light_curves_df, overwrite=False):
         all_permanents_catalog = pd.read_pickle(filepath)
         return all_permanents_catalog
     else:
-        all_permanents_catalog = permanents_light_curves_df[['ID','RA','Decl','ObjID']].groupby('ID').mean()
+        all_permanents_catalog = permanents_light_curves_df[['ID','RA','Decl','ObjectID']].groupby('ID').mean()
         all_permanents_catalog.rename(columns={'RA':'ra', 'Decl':'dec'}, inplace=True)
         all_permanents_catalog['type'] = 'PERMANENT'
-        all_permanents_catalog.set_index(['ObjID'], drop=True, inplace=True)
+        all_permanents_catalog.set_index(['ObjectID'], drop=True, inplace=True)
         all_permanents_catalog.sort_index(inplace=True)
         all_permanents_catalog.to_pickle(filepath)
         return all_permanents_catalog
@@ -168,21 +167,32 @@ def __create_query_file__(obj_catalog_df, ispermanent, start_index, end_index):
             file.write('{} {} {} {}\n'.format(i, ra, dec, rad))
     return query_file_path
 
-def __format_raw_light_curves__(raw_light_curves_df, ispermanent=None, transient_IDs=None):
+def __format_light_curves__(light_curves_df, ispermanent=None, transient_IDs=None):
+    df = light_curves_df.copy()
+    df.drop_duplicates(keep='first', inplace=True)
+    df['ID'] = df['ID'].astype(str)
     if ispermanent:
-        raw_light_curves_df['ID'] = raw_light_curves_df['ID'].astype(str)
-        query = raw_light_curves_df['ID'].isin(transient_IDs.unique())
-        raw_light_curves_df.drop(raw_light_curves_df[query].index, inplace=True)
-        print('Num Objects: {}'.format(len(raw_light_curves_df.ID.unique())))
+        # Drop transients form DF
+        query = df['ID'].isin(transient_IDs.unique())
+        df.drop(df[query].index, inplace=True)
+        # Add ObjectId column
+        for i, index in enumerate(df.ID.unique()):
+            df.loc[df.ID == index, 'ObjectID'] = i
+        df['ObjectID'] = df['ObjectID'].astype(int)
     else:
-        raw_light_curves_df.rename(columns={'InputID':'ObjectID'}, inplace=True)
+        # Add ObjectId column
+        df.rename(columns={'InputID':'ObjectID'}, inplace=True)
+    df = df[df.MJD > 0]
+    df['Date'] = time.mjd_to_datetime(df.MJD)
+    return df        
+        
 
 def __consolidate_light_curves_df__(obj_catalog_df, ispermanent, transient_IDs=None):
     outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED_TEMP_OBJECTS if ispermanent else k.DIR_CATALOGUES_LIGHTCURVES_GROUPED_TEMP_TRANSIENTS
     io.makedir(outdir)
     light_curves_df = pd.DataFrame()
     step, n_rows = 50 if ispermanent else 100, obj_catalog_df.shape[0]
-    for i in range(0, 49, step):
+    for i in range(0, n_rows, step):
         temp_light_curves_filename = 'part{}.tbl'.format(int(i/step))
         light_curves_table_path = outdir + temp_light_curves_filename
         if not io.file_exists(temp_light_curves_filename, outdir, verbose=False):
@@ -190,14 +200,9 @@ def __consolidate_light_curves_df__(obj_catalog_df, ispermanent, transient_IDs=N
             light_curves_table_path = __retrieve_light_curves__(query_file_path, temp_light_curves_filename, outdir, use_orphancat=(not ispermanent))
             if not light_curves_table_path: print('Error in seq. {}, curves not found'.format(i)); continue;
         temp_light_curves_df = Table.read(light_curves_table_path, format='ascii').to_pandas()
-        __format_raw_light_curves__(temp_light_curves_df, ispermanent, transient_IDs)
         light_curves_df = light_curves_df.append(temp_light_curves_df, ignore_index=True)
-    light_curves_df.drop_duplicates(keep='first', inplace=True)
-    if ispermanent:
-        # Add ObjId column
-        for i, index in enumerate(light_curves_df.ID.unique()):
-            light_curves_df.loc[light_curves_df.ID == index, 'ObjID'] = i
-        light_curves_df['ObjID'] = light_curves_df['ObjID'].astype(int)
+    # Clean resulting DataFrame
+    light_curves_df = __format_light_curves__(light_curves_df, ispermanent, transient_IDs)
     return light_curves_df
 
 def __generate_light_curves__(obj_catalog_df, overwrite, ispermanent, transient_IDs=None):
