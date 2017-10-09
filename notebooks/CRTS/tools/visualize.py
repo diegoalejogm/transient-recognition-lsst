@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 #import seaborn as sns
 
 init_notebook_mode(connected=True)
@@ -42,18 +43,22 @@ def combined_light_curves(df_lc, n_obj, obj_type, min_obs=None, filtre=None, ran
     # Sample data
     sample_obj_ids = np.random.choice(df_lc.ObjectID.unique(), n_obj, replace=False)
     df_lc_sample = df_lc[df_lc.ObjectID.isin(sample_obj_ids)].copy()
-    # Separate LCs into seasons
-    for obj_id in sample_obj_ids:
-        prev_MJD, season_index = None, -1
-        for lc_row_index, lc_row in df_lc_sample[df_lc_sample.ObjectID == obj_id].sort_values(['MJD']).iterrows():
-            current_MJD = lc_row.MJD
-            if prev_MJD == None or (current_MJD - prev_MJD) >= 150:
-                season_index = season_index+1
-            df_lc_sample.loc[lc_row_index, 'Season'] = season_index
-            prev_MJD = current_MJD
-    df_lc_sample['Season'] = df_lc_sample['Season'].astype(int)
 
     figsize = (20,8)
+
+    # Plot scatter of all points for every sample
+    outdir = k.DIR_IMAGES_SCATTERS + '{}/'.format(obj_type)
+    df_lc_sample['Day'] = ( df_lc['Date'] - datetime.datetime(2005, 4, 4) ).dt.days
+    io.makedir(outdir)
+    for obj_id in sample_obj_ids:
+        df_obj_lc = df_lc_sample[df_lc_sample.ObjectID == obj_id]
+        filename = '{}.png'.format(obj_id)
+        if io.file_exists(filename, outdir): continue
+        plot_df = df_obj_lc.plot.scatter(x='Day', y='Mag', yerr='Magerr', figsize=figsize, xlim=(0, 3500))
+        plt.savefig(outdir + filename, dpi=110)
+        plt.close(plot_df.get_figure())
+
+
     dict_plotting_data = __generate_plotting_data__(sample_obj_ids, df_lc_sample)
     # Draw LCs for each object, using all seasons
     __combined_light_curves_all_seasons__(obj_type, dict_plotting_data, figsize, local=False)
@@ -65,6 +70,17 @@ def combined_light_curves(df_lc, n_obj, obj_type, min_obs=None, filtre=None, ran
 
 
 def __generate_plotting_data__(sample_obj_ids, df_lc_sample):
+    # Separate LCs into seasons
+    for obj_id in sample_obj_ids:
+        prev_MJD, season_index = None, -1
+        for lc_row_index, lc_row in df_lc_sample[df_lc_sample.ObjectID == obj_id].sort_values(['MJD']).iterrows():
+            current_MJD = lc_row.MJD
+            if prev_MJD == None or (current_MJD - prev_MJD) >= 150:
+                season_index = season_index+1
+            df_lc_sample.loc[lc_row_index, 'Season'] = season_index
+            prev_MJD = current_MJD
+    df_lc_sample['Season'] = df_lc_sample['Season'].astype(int)
+
     plotting_data_dict = dict()
     seasons_list = sorted(df_lc_sample.Season.unique())
     for obj_id in sample_obj_ids:

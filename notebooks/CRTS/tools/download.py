@@ -184,8 +184,8 @@ def __format_light_curves__(light_curves_df, ispermanent=None, transient_IDs=Non
         df.rename(columns={'InputID':'ObjectID'}, inplace=True)
     df = df[df.MJD > 0]
     df['Date'] = time.mjd_to_datetime(df.MJD)
-    return df        
-        
+    return df
+
 
 def __consolidate_light_curves_df__(obj_catalog_df, ispermanent, transient_IDs=None):
     outdir = k.DIR_CATALOGUES_LIGHTCURVES_GROUPED_TEMP_OBJECTS if ispermanent else k.DIR_CATALOGUES_LIGHTCURVES_GROUPED_TEMP_TRANSIENTS
