@@ -120,7 +120,7 @@ def median_buffer_range_percentage(ss_flux):
     N = ss_flux.shape[0]
     median = ss_flux.median()
     mbf_list = ss_flux[(ss_flux - median).abs() < .1 * median]
-    return mbf_list / float(N)
+    return mbf_list.shape[0] / float(N)
 
 def pair_slope_trend(ss_mag, ss_date):
     '''
