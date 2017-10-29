@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import datetime as datetime
 
@@ -26,8 +27,8 @@ def __stetson_sigmas__(ss_mag, ss_magerr):
     '''
     Calculates the relative errors (sigmas) for stetson measurements.
     '''
-    n = float(ss_mag.shape[0])
-    sigmas = np.sqrt(n / (n - 1)) * (ss_mag - ss_mag.mean()) / ss_magerr
+    n = ss_mag.shape[0]
+    sigmas = np.sqrt(float(n) / (n - 1)) * (ss_mag - ss_mag.mean()) / ss_magerr
     return sigmas
 
 def skew(ss_mag):
@@ -41,6 +42,20 @@ def kurtosis(ss_mag):
     Kurtosis of the magnitudes, reliable down to a small number of epochs.
     '''
     return ss_mag.kurtosis()
+
+def small_kurtosis(ss_mag):
+    '''
+    Small sample kurtosis of the magnitudes.
+    See http://www.xycoon.com/peakedness_small_sample_test_1.htm
+    '''
+
+    n = float(ss_mag.shape[0])
+    mean = ss_mag.mean()
+    s = math.sqrt((ss_mag - mean).pow(2).sum() / (n-1))
+    S = math.pow( (ss_mag-mean).divide(s).sum(), 4)
+    c1 = float(n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3))
+    c2 = float(3 * (n - 1) ** 2) / ((n - 2) * (n - 3))
+    return c1 * S - c2
 
 def std(ss_mag):
     '''
@@ -76,7 +91,7 @@ def stetson_j(ss_mag, ss_magerr, ss_date, exponential=False):
         # Calculate mean dt: delta-time
         dt = __datetime_diff_to_int_timedelta__(ss_date.diff()).mean()
         # Re-calculate Weights
-        w = np.exp(-ss_mag.diff() / dt)
+        w = np.exp(-__datetime_diff_to_int_timedelta__(ss_date.diff()) / dt)
     # Calculate p: product of residuals
     p = sigmas * sigmas.shift(1)
     # Return Stetson J measuerement
@@ -87,12 +102,12 @@ def stetson_k(ss_mag, ss_magerr):
     Welch-Stetson variability index K (Stetson 1996).
     Robust kurtosis measure.
     '''
-    n = float(ss_mag.shape[0])
+    n = ss_mag.shape[0]
     if n <= 1: return 0
     # Calculate sigmas: Relative Errors
     sigmas = __stetson_sigmas__(ss_mag, ss_magerr)
     # Return Stetson K measurement
-    return np.sqrt(sigmas.abs().mean() / sigmas.pow(2.).mean())
+    return sigmas.abs().mean() / np.sqrt(sigmas.pow(2.).mean())
 
 def max_slope(ss_mag, ss_date):
     '''
@@ -126,9 +141,18 @@ def pair_slope_trend(ss_mag, ss_date):
     '''
     Percentage of all pairs of consecutive mag measurements that have positive slope.
     '''
-    N = ss_mag.shape[0]
+    N = float(ss_mag.shape[0])
     ss_timedelta = __datetime_diff_to_int_timedelta__(ss_date.diff())
     ss_slopes = (ss_mag.diff() / ss_timedelta)
+    return ss_slopes[ss_slopes > 0].shape[0] / N
+
+def pair_slope_trend_last_30(ss_mag, ss_date):
+    '''
+    Percentage last 30 pairs of consecutive mag measurements that have positive slope.
+    '''
+    N = 30.
+    ss_timedelta = __datetime_diff_to_int_timedelta__(ss_date.diff())
+    ss_slopes = (ss_mag.diff().tail(30) / ss_timedelta.tail(30))
     return ss_slopes[ss_slopes > 0].shape[0] / N
 
 def flux_percentile_ratio_mid20(ss_flux):
