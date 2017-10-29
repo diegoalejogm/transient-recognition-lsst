@@ -1,0 +1,354 @@
+----- EXPERIMENT START ------
+NUM OBSERVATIONS:5
+NUM FEATURES:19
+FEATURES:['amplitude' 'beyond1st' 'flux_percentile_ratio_mid20'
+ 'flux_percentile_ratio_mid35' 'flux_percentile_ratio_mid50'
+ 'flux_percentile_ratio_mid65' 'flux_percentile_ratio_mid80' 'kurtosis'
+ 'linear_trend' 'max_slope' 'median_absolute_deviation'
+ 'median_buffer_range_percentage' 'pair_slope_trend' 'percent_amplitude'
+ 'percent_difference_flux_percentile' 'skew' 'std' 'stetson_j' 'stetson_k'
+ 'is_transient']
+--SVM--
+Validation Score:0.8295880149812734
+Best Estimator:SVC(C=1000, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma=0.01, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+Test Score:0.8400138217000691
+Confusion Matrix:
+[[1123  324]
+ [ 139 1308]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 77.61  22.39]
+ [  9.61  90.39]]
+--Random Forest--
+Best Score:0.8541028260129384
+Best Estimator:RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=200, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+Test Score:0.8638562543192813
+Confusion Matrix:
+[[1189  258]
+ [ 136 1311]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 82.17  17.83]
+ [  9.4   90.6 ]]
+--Neural Network--
+Best Score:0.8355464759959143
+Best Estimator:MLPClassifier(activation='tanh', alpha=0.01, batch_size='auto', beta_1=0.9,
+       beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=100, learning_rate='adaptive',
+       learning_rate_init=0.001, max_iter=200, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=None,
+       shuffle=True, solver='adam', tol=0.0001, validation_fraction=0.1,
+       verbose=False, warm_start=False)
+Test Score:0.8382861091914305
+Confusion Matrix:
+[[1140  307]
+ [ 161 1286]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 78.78  21.22]
+ [ 11.13  88.87]]
+----- EXPERIMENT START ------
+NUM OBSERVATIONS:5
+NUM FEATURES:21
+FEATURES:['amplitude' 'beyond1st' 'flux_percentile_ratio_mid20'
+ 'flux_percentile_ratio_mid35' 'flux_percentile_ratio_mid50'
+ 'flux_percentile_ratio_mid65' 'flux_percentile_ratio_mid80' 'kurtosis'
+ 'linear_trend' 'max_slope' 'median_absolute_deviation'
+ 'median_buffer_range_percentage' 'pair_slope_trend'
+ 'pair_slope_trend_last_30' 'percent_amplitude'
+ 'percent_difference_flux_percentile' 'skew' 'small_kurtosis' 'std'
+ 'stetson_j' 'stetson_k' 'is_transient']
+--SVM--
+Validation Score:0.832822608103507
+Best Estimator:SVC(C=100, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma=0.01, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+Test Score:0.8527988942639945
+Confusion Matrix:
+[[1142  305]
+ [ 121 1326]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 78.92  21.08]
+ [  8.36  91.64]]
+--Random Forest--
+Best Score:0.8593803200544774
+Best Estimator:RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='log2', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=200, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+Test Score:0.8645473393227368
+Confusion Matrix:
+[[1196  251]
+ [ 141 1306]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 82.65  17.35]
+ [  9.74  90.26]]
+--Neural Network--
+Best Score:0.8399727613210759
+Best Estimator:MLPClassifier(activation='tanh', alpha=0.01, batch_size='auto', beta_1=0.9,
+       beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=(100, 100), learning_rate='adaptive',
+       learning_rate_init=0.001, max_iter=200, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=None,
+       shuffle=True, solver='adam', tol=0.0001, validation_fraction=0.1,
+       verbose=False, warm_start=False)
+Test Score:0.8507256392536282
+Confusion Matrix:
+[[1151  296]
+ [ 136 1311]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 79.54  20.46]
+ [  9.4   90.6 ]]
+----- EXPERIMENT START ------
+NUM OBSERVATIONS:10
+NUM FEATURES:19
+FEATURES:['amplitude' 'beyond1st' 'flux_percentile_ratio_mid20'
+ 'flux_percentile_ratio_mid35' 'flux_percentile_ratio_mid50'
+ 'flux_percentile_ratio_mid65' 'flux_percentile_ratio_mid80' 'kurtosis'
+ 'linear_trend' 'max_slope' 'median_absolute_deviation'
+ 'median_buffer_range_percentage' 'pair_slope_trend' 'percent_amplitude'
+ 'percent_difference_flux_percentile' 'skew' 'std' 'stetson_j' 'stetson_k'
+ 'is_transient']
+--SVM--
+Validation Score:0.8482178614337205
+Best Estimator:SVC(C=100, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma=0.01, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+Test Score:0.8495934959349594
+Confusion Matrix:
+[[ 963  267]
+ [ 103 1127]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 78.29  21.71]
+ [  8.37  91.63]]
+--Random Forest--
+Best Score:0.8590308370044053
+Best Estimator:RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=200, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+Test Score:0.8686991869918699
+Confusion Matrix:
+[[1007  223]
+ [ 100 1130]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 81.87  18.13]
+ [  8.13  91.87]]
+--Neural Network--
+Best Score:0.8532238686423709
+Best Estimator:MLPClassifier(activation='relu', alpha=0.01, batch_size='auto', beta_1=0.9,
+       beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=100, learning_rate='constant',
+       learning_rate_init=0.001, max_iter=200, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=None,
+       shuffle=True, solver='adam', tol=0.0001, validation_fraction=0.1,
+       verbose=False, warm_start=False)
+Test Score:0.8524390243902439
+Confusion Matrix:
+[[ 986  244]
+ [ 119 1111]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 80.16  19.84]
+ [  9.67  90.33]]
+----- EXPERIMENT START ------
+NUM OBSERVATIONS:10
+NUM FEATURES:21
+FEATURES:['amplitude' 'beyond1st' 'flux_percentile_ratio_mid20'
+ 'flux_percentile_ratio_mid35' 'flux_percentile_ratio_mid50'
+ 'flux_percentile_ratio_mid65' 'flux_percentile_ratio_mid80' 'kurtosis'
+ 'linear_trend' 'max_slope' 'median_absolute_deviation'
+ 'median_buffer_range_percentage' 'pair_slope_trend'
+ 'pair_slope_trend_last_30' 'percent_amplitude'
+ 'percent_difference_flux_percentile' 'skew' 'small_kurtosis' 'std'
+ 'stetson_j' 'stetson_k' 'is_transient']
+--SVM--
+Validation Score:0.8536243492190628
+Best Estimator:SVC(C=100, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma=0.01, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+Test Score:0.8565040650406504
+Confusion Matrix:
+[[ 983  247]
+ [ 106 1124]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 79.92  20.08]
+ [  8.62  91.38]]
+--Random Forest--
+Best Score:0.8624349219062876
+Best Estimator:RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='sqrt', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=200, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+Test Score:0.875609756097561
+Confusion Matrix:
+[[1011  219]
+ [  87 1143]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 82.2   17.8 ]
+ [  7.07  92.93]]
+--Neural Network--
+Best Score:0.855826992390869
+Best Estimator:MLPClassifier(activation='relu', alpha=0.01, batch_size='auto', beta_1=0.9,
+       beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=(100, 100), learning_rate='constant',
+       learning_rate_init=0.001, max_iter=200, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=None,
+       shuffle=True, solver='adam', tol=0.0001, validation_fraction=0.1,
+       verbose=False, warm_start=False)
+Test Score:0.859349593495935
+Confusion Matrix:
+[[1001  229]
+ [ 117 1113]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 81.38  18.62]
+ [  9.51  90.49]]
+----- EXPERIMENT START ------
+NUM OBSERVATIONS:10
+NUM FEATURES:28
+FEATURES:['amplitude' 'beyond1st' 'flux_percentile_ratio_mid20'
+ 'flux_percentile_ratio_mid35' 'flux_percentile_ratio_mid50'
+ 'flux_percentile_ratio_mid65' 'flux_percentile_ratio_mid80' 'kurtosis'
+ 'linear_trend' 'max_slope' 'median_absolute_deviation'
+ 'median_buffer_range_percentage' 'pair_slope_trend'
+ 'pair_slope_trend_last_30' 'percent_amplitude'
+ 'percent_difference_flux_percentile' 'poly1_a' 'poly2_a' 'poly2_b'
+ 'poly4_a' 'poly4_b' 'poly4_c' 'poly4_d' 'skew' 'small_kurtosis' 'std'
+ 'stetson_j' 'stetson_k' 'is_transient']
+--SVM--
+Validation Score:1.0
+Best Estimator:SVC(C=1, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma=0.001, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+Test Score:0.9995571302037201
+Confusion Matrix:
+[[1060    1]
+ [   0 1197]]
+Norm. Confusion Matrix:
+[1 0]
+[[  9.99100000e+01   9.00000000e-02]
+ [  0.00000000e+00   1.00000000e+02]]
+--Random Forest--
+Best Score:1.0
+Best Estimator:RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=200, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+Test Score:1.0
+Confusion Matrix:
+[[1061    0]
+ [   0 1197]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 100.    0.]
+ [   0.  100.]]
+--Neural Network--
+Best Score:1.0
+Best Estimator:MLPClassifier(activation='logistic', alpha=0.01, batch_size='auto',
+       beta_1=0.9, beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=100, learning_rate='constant',
+       learning_rate_init=0.001, max_iter=200, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=None,
+       shuffle=True, solver='adam', tol=0.0001, validation_fraction=0.1,
+       verbose=False, warm_start=False)
+Test Score:1.0
+Confusion Matrix:
+[[1061    0]
+ [   0 1197]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 100.    0.]
+ [   0.  100.]]
+----- EXPERIMENT START ------
+NUM OBSERVATIONS:5
+NUM FEATURES:28
+FEATURES:['amplitude' 'beyond1st' 'flux_percentile_ratio_mid20'
+ 'flux_percentile_ratio_mid35' 'flux_percentile_ratio_mid50'
+ 'flux_percentile_ratio_mid65' 'flux_percentile_ratio_mid80' 'kurtosis'
+ 'linear_trend' 'max_slope' 'median_absolute_deviation'
+ 'median_buffer_range_percentage' 'pair_slope_trend'
+ 'pair_slope_trend_last_30' 'percent_amplitude'
+ 'percent_difference_flux_percentile' 'poly1_a' 'poly2_a' 'poly2_b'
+ 'poly4_a' 'poly4_b' 'poly4_c' 'poly4_d' 'skew' 'small_kurtosis' 'std'
+ 'stetson_j' 'stetson_k' 'is_transient']
+--SVM--
+Validation Score:1.0
+Best Estimator:SVC(C=1, cache_size=200, class_weight=None, coef0=0.0,
+  decision_function_shape='ovr', degree=3, gamma=0.0001, kernel='rbf',
+  max_iter=-1, probability=False, random_state=None, shrinking=True,
+  tol=0.001, verbose=False)
+Test Score:1.0
+Confusion Matrix:
+[[1278    0]
+ [   0 1414]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 100.    0.]
+ [   0.  100.]]
+--Random Forest--
+Best Score:1.0
+Best Estimator:RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
+            max_depth=None, max_features='auto', max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=200, n_jobs=1,
+            oob_score=False, random_state=None, verbose=0,
+            warm_start=False)
+Test Score:1.0
+Confusion Matrix:
+[[1278    0]
+ [   0 1414]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 100.    0.]
+ [   0.  100.]]
+--Neural Network--
+Best Score:1.0
+Best Estimator:MLPClassifier(activation='logistic', alpha=0.01, batch_size='auto',
+       beta_1=0.9, beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=100, learning_rate='constant',
+       learning_rate_init=0.001, max_iter=200, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=None,
+       shuffle=True, solver='adam', tol=0.0001, validation_fraction=0.1,
+       verbose=False, warm_start=False)
+Test Score:1.0
+Confusion Matrix:
+[[1278    0]
+ [   0 1414]]
+Norm. Confusion Matrix:
+[1 0]
+[[ 100.    0.]
+ [   0.  100.]]
