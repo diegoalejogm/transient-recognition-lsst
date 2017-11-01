@@ -208,3 +208,14 @@ def linear_trend(ss_flux, ss_date):
     ss_timedelta = __datetime_diff_to_int_timedelta__(ss_date_diff)
     m, b = np.polyfit(ss_timedelta, ss_flux, 1)
     return m
+
+def poly_params(ss_mag, ss_magerr, ss_mjd):
+    '''
+    Returns poly fit parameters up to rank 4.
+    '''
+    x = ss_mjd - ss_mjd.mean(); y = ss_mag 
+    p1 = np.polyfit(x, y, 1)
+    p2 = np.polyfit(x, y, 2)
+    p3 = np.polyfit(x, y, 3)
+    p4 = np.polyfit(x, y, 4)
+    return p1, p2, p3, p4
