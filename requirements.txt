@@ -12,7 +12,7 @@ cffi==1.11.0
 chardet==3.0.4
 chromedriver==2.24.1
 constantly==15.1.0
-cryptography==3.2
+cryptography==3.3.2
 cssselect==1.0.1
 cycler==0.10.0
 decorator==4.1.2
